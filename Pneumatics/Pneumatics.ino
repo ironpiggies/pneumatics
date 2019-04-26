@@ -8,6 +8,11 @@
 #define SOLENOIDPWM 11 //this will be set to 255 or 0 always, nothing in between.
 #define SOLENOIDCURRENT A1 //not that useful, but we will keep it anyways
 #define SOLENOIDBRAKE 8 //also not useful
+
+int blow_time= 4000; //milliseconds 
+int suck_time=7000;//milliseconds
+int hold_time=2000;//100500;//milliseconds
+
 /*
 penumatic connections:
 
@@ -36,7 +41,7 @@ int pump_pwm;
 bool solenoid_pwm;//only ever all-on or all-off. no in between.
 bool solenoid_dir;
 
-int pump_current; //used to tell how hard the pump is driving
+float pump_current; //used to tell how hard the pump is driving
 
 void setup() {
   // put your setup code here, to run once:
@@ -69,8 +74,8 @@ void loop() {
 
   //read values
   pump_current = analogRead(PUMPCURRENT)/1.65;// Vout= 1.65V/A * current
-  //Serial.println(pump_current);
-  Serial.println(analogRead(SOLENOIDCURRENT)/1.65);
+  Serial.println(pump_current);
+  //Serial.println(analogRead(SOLENOIDCURRENT)/1.65);
   //somehow recieve value for pumping
   if (pumping==1){ //suck
     solenoid_dir=HIGH;
@@ -111,13 +116,12 @@ void get_pumping(){
   //pumping=1;
   //triple square wave/step wave:
   
-  if ((timed%5000)<1000){
-    pumping=1; //suck
-  }else if (((timed%5000)>1000)&&((timed%5000)<4000)){
+  if ((timed%(blow_time+suck_time+hold_time))<blow_time){
     pumping=2; //blow
+  }else if ((timed%(blow_time+suck_time+hold_time))<(hold_time+blow_time)){
+    pumping=3; //hold
   }else{
-    pumping=2;
-    //pumping=3; //hold
+    pumping=1;//suck
   }
 }
 
