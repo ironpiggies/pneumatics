@@ -14,9 +14,11 @@
 //#define SERIAL_TALKING
 
 
+//these govern times for both testing and for actual implementation. this means we can test then 
+//when we find something that works just uncomment/comment above and leave these values the same
 int blow_time= 4000; //milliseconds 
 int suck_time=7000;//milliseconds
-int hold_time=2000;//100500;//milliseconds
+int hold_time=2000;//milliseconds
 
 /*
 penumatic connections:
