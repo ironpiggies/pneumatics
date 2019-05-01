@@ -50,8 +50,10 @@ bool solenoid_dir;
 
 float pump_current; //used to tell how hard the pump is driving
 
+//used to track how long pumping has been happening relative to what our goal is
 int current_cmd_start_time=0;
-
+//if millis() wraparound ends up being a problem (once it gets too high it becomes 0 again), then we can have the ros computer side of things take care of 
+//timing and the arduino just recieves and executes commands. i could see this being an issue
 
 void setup() {
   // put your setup code here, to run once:
@@ -74,7 +76,7 @@ void setup() {
 
   #ifdef TESTING
       //begin serial communication
-      Serial.begin(9600); //different number might have to be used
+      Serial.begin(9600); 
   #endif
 
 }
@@ -94,7 +96,7 @@ void loop() {
   //decided and implemented by the arduino
 
   //read values
-  pump_current = analogRead(PUMPCURRENT)/1.65;// Vout= 1.65V/A * current
+  pump_current = 1/1.65*map(analogRead(PUMPCURRENT),0,1023,0,3.3);// Vout= 1.65V/A * current, Vout is 0->1023 but actually is 0 to 3.3V (or 5V?)
   
   //Serial.println(analogRead(SOLENOIDCURRENT)/1.65);
   //somehow recieve value for pumping
@@ -119,7 +121,7 @@ void loop() {
     pump_pwm=0;
   } //if else, should do what was being done before. might have to change 0 to this, we shall see :P
 
-  drive();
+  drive(); //send commands to motors based on pumping
   writeSerialData(); //send updates back to ros
 }
 
