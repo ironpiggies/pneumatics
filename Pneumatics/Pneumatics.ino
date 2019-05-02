@@ -123,7 +123,6 @@ void loop() {
   } //if else, should do what was being done before. might have to change 0 to this, we shall see :P
 
   drive(); //send commands to motors based on pumping
-  writeSerialData(); //send updates back to ros
 }
 
 void drive(){
