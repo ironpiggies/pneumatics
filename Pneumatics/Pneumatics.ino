@@ -102,12 +102,12 @@ void loop() {
   //Serial.println(analogRead(SOLENOIDCURRENT)/1.65);
   //somehow recieve value for pumping
   if (pumping==1){ //suck
-    solenoid_dir=HIGH;
+    solenoid_dir=LOW;
     solenoid_pwm=HIGH;
     pump_pwm=255;
     //Serial.println("suck");
   }else if (pumping ==2){ //blow
-    solenoid_dir=LOW;
+    solenoid_dir=HIGH;
     solenoid_pwm=HIGH;
     pump_pwm=255;
     //Serial.println("blow");
