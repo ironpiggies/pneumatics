@@ -10,8 +10,8 @@
 #define SOLENOIDBRAKE 8 //also not useful
 
 //comment out which one you are using or not; i.e: if you want to test by hand comment out SERIAL_TALKING
-#define TESTING
-//#define SERIAL_TALKING
+//#define TESTING
+#define SERIAL_TALKING
 
 
 //these govern times for both testing and for actual implementation. this means we can test then 
@@ -54,6 +54,7 @@ float pump_current; //used to tell how hard the pump is driving
 int current_cmd_start_time=0;
 //if millis() wraparound ends up being a problem (once it gets too high it becomes 0 again), then we can have the ros computer side of things take care of 
 //timing and the arduino just recieves and executes commands. i could see this being an issue
+//ok we are going with computer taking care of timing and the arduino just does what it is told!
 
 void setup() {
   // put your setup code here, to run once:
@@ -70,7 +71,7 @@ void setup() {
   digitalWrite(PUMPDIR,LOW);  //pump goes in the same direction reagrdless of polarity, so only PWM matters for it.
 
   #ifdef SERIAL_TALKING
-    Serial.begin(115200);//used for talking with a computer
+    Serial.begin(9600);//used for talking with a computer
   #endif
 
 
@@ -82,7 +83,7 @@ void setup() {
 }
 
 void loop() {
-  
+  //Serial.println(pumping);
   #ifdef SERIAL_TALKING
   get_pumping_serial();
   #endif
@@ -96,7 +97,7 @@ void loop() {
   //decided and implemented by the arduino
 
   //read values
-  pump_current = 1/1.65*map(analogRead(PUMPCURRENT),0,1023,0,3.3);// Vout= 1.65V/A * current, Vout is 0->1023 but actually is 0 to 3.3V (or 5V?)
+  //pump_current = 1/1.65*map(analogRead(PUMPCURRENT),0,1023,0,3.3);// Vout= 1.65V/A * current, Vout is 0->1023 but actually is 0 to 3.3V (or 5V?)
   
   //Serial.println(analogRead(SOLENOIDCURRENT)/1.65);
   //somehow recieve value for pumping
@@ -134,12 +135,11 @@ void drive(){
 
 void get_pumping_test(){ 
   //eventually this should read off of the serial port or ros topic or however that thing works
-  Serial.println(pump_current);
+  //Serial.println(pump_current);
   //below is the test code :P it alternates between sucking and blowing for testing purposes
   int timed=millis();
   //pumping=1;
   //triple square wave/step wave:
-  
   if ((timed%(blow_time+suck_time+hold_time))<blow_time){
     pumping=2; //blow
   }else if ((timed%(blow_time+suck_time+hold_time))<(hold_time+blow_time)){
@@ -151,44 +151,18 @@ void get_pumping_test(){
 
 void get_pumping_serial(){
     int new_pumping=readSerialData();
-    if (pumping!=new_pumping){ //if we got a new pumping value, start the timer
-      current_cmd_start_time=millis();
+    if (new_pumping!=0){
+      pumping=new_pumping;
     }
-    pumping=new_pumping;
 }
 
 int readSerialData(){
-  if (Serial.available()>0){
+  
+  //if (Serial.available()>0){
+    //Serial.println("ooh");
     String commandString=Serial.readStringUntil('\n');//read a whole line
     return commandString.toInt();
-  }else{
-    return 0;
-  }
+  //}else{
+    //return 0;
+  //}
 }
-
-void writeSerialData(){
-  bool is_done=get_is_done();
-  if (Serial.available()>0){
-    Serial.println(is_done);
-  }
-}
-
-bool get_is_done(){ //this is for conditions to see whether we are done doing the current pumping command.
-  if (pumping==0){
-    return (true); //if we aren't supposed to do anything, then we are immediately doing it
-  }else if(pumping==1){
-    if ((millis()-current_cmd_start_time)>=suck_time){ //if we have waited longer than suck_time, then it has sucked long enough
-      return(true);
-    }
-  }else if(pumping==2){
-    if ((millis()-current_cmd_start_time)>=blow_time){
-      return(true);
-    }
-  }else if (pumping==3){
-    if ((millis()-current_cmd_start_time)>=hold_time){
-      return(true);
-    }
-  }
-  return(false);
-}
-
